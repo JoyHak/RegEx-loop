@@ -1,5 +1,4 @@
 ### Regex Invention
-![](https://github.com/JoyHak/RegEx-loop/blob/main/Video_2025_01_11-1.mp4)
 I want to share my invention, which allows you to use only one RegEx, which will search for substrings in a string with a certain condition. If you want, call it a RegEx loop that didn't exist before!
 ![](demo.gif)
 
