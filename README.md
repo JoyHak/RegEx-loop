@@ -6,11 +6,7 @@ I will share with you not only options for implementing loops in RegEx, but also
 
 ### Problem
 
-For the [EnhanceAnyLexer](https://github.com/Ekopalypse/EnhanceAnyLexer) Notepad++ plugin, I needed to write a RegEx in one line that would look for substrings in a string. Due to the limitations of the plugin, I could only use RegEx. My task was to highlight individual words only inside quotation marks and avoid certain characters. It is impossible to use **look ahead/behind** *(the words are far from the quotes)*, the conditions `(?(condition)|(true)(false))` and subgroups with a quantifier `( )+` because *a repeated capturing group will only capture the last iteration*. 
-
-I have not found a clean RegEx on the Internet that would perform this task. [This expression is the closest solution to my problem.](https://stackoverflow.com/a/51667506)
-
-Based on this answer, I came up with different versions of RegEx that cyclically search for expressions based on a certain condition. The [Perl syntax](https://www.boost.org/doc/libs/1_85_0/libs/regex/doc/html/boost_regex/syntax/perl_syntax.html) is used here. 
+For the [EnhanceAnyLexer](https://github.com/Ekopalypse/EnhanceAnyLexer) Notepad++ plugin, I needed to write a RegEx in one line that would look for substrings in a string. Due to the limitations of the plugin, I could only use RegEx. My task was to highlight individual words only inside quotation marks and avoid certain characters. It is impossible to use **look ahead/behind** *(the words are far from the quotes)*, the conditions `(?(condition)|(true)(false))` and subgroups with a quantifier `( )+` because *a repeated capturing group will only capture the last iteration*. The [Perl syntax](https://www.boost.org/doc/libs/1_85_0/libs/regex/doc/html/boost_regex/syntax/perl_syntax.html) is used here. 
 
 #### Explanation
 
