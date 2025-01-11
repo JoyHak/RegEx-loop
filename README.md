@@ -33,6 +33,7 @@ separator*?  	# Ungreedy: zero and more separators before expresseion: space, ch
 \K  			# Reset the match start again
 expression  	# Match the expression: \w+ or .+ ...
 ```
+The idea: after encountering a `condition`, the RegEx starts from its position `(?<=\G)`, goes on, bypasses the separator, resets the current position and finally captures the desired `expression`. Having reached the end, all the RegEx is repeated again from the position of the last found word `(?<=\G)`. And so on until the end of the string.
 
 `\K` means *forget everything before and start highlight from this position*. It helps not to highlight everything that was before `\K`.  Now we construct the RegEx according to the template ([DEMO](https://regex101.com/r/wXPPD2/1)):
 
