@@ -87,7 +87,7 @@ Now we construct the RegEx according to the template. The template is similar to
 The RegEx `stop condition` appears: `[^"']`*([char](https://riptutorial.com/regex/topic/1757/character-classes#undefined) `^` means everything except the quotes)*. After it, the highlighting of further characters is completed. Now we construct the RegEx according to the template ([DEMO](https://regex101.com/r/FUH7Xx/4)):
 
 ```python
-c ["'] \K  		# Condition: c " or c ' or c   " or c   '
+c ["'] \K  		# Condition: c" or c'
 
 |  			    # Beginning of the loop
 
