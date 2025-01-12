@@ -4,66 +4,75 @@ I want to share my invention, which allows you to use only one RegEx, which will
 
 I will share with you not only options for implementing loops in RegEx, but also show various examples from simple to complex.
 
-### Problem
+Please note that the RegEx uses *spaces* to improve *readability*. RegEx usually treats spaces as characters, so for these patterns to work, a [flag](https://riptutorial.com/regex/topic/5138/regex-modifiers--flags-) `(?ix)` is required.
 
-For the [EnhanceAnyLexer](https://github.com/Ekopalypse/EnhanceAnyLexer) Notepad++ plugin, I needed to write a RegEx in one line that would look for substrings in a string. Due to the limitations of the plugin, I could only use RegEx. My task was to highlight individual words only inside quotation marks and avoid certain characters. It is impossible to use **look ahead/behind** *(the words are far from the quotes)*, the conditions `(?(condition)|(true)(false))` and subgroups with a quantifier `( )+` because *a repeated capturing group will only capture the last iteration*. The [Perl syntax](https://www.boost.org/doc/libs/1_85_0/libs/regex/doc/html/boost_regex/syntax/perl_syntax.html) is used here. 
+In the examples, the RegEx parts are *split into lines*, which is necessary to improve perception but this feature is not supported by RegEx. The examples use[Perl syntax](https://www.boost.org/doc/libs/1_85_0/libs/regex/doc/html/boost_regex/syntax/perl_syntax.html).
 
 #### Explanation
 
-Let's start with a simple task. If there is a `c` at the beginning of the line highlight only words and numbers in it:
+Let's start with a simple task. Find a string that starts with the letter `c` and find all the words and numbers in it:
 
-```tcl
-c =word &word 2-2=0 
-c 22 ^&*w0rd* 
-+word &word   
+```css
+c word = word + key
+c 12 = word + word
+word & word = word + word
+12 = word + word
 ```
 
-We expect to highlight only the words `word` and the numbers `2` and `0` only in the first two lines. The template for a similar task looks like this:
+We expect to highlight only the [words](https://en.wikipedia.org/wiki/Regular_expression#Character_classes) `word` and the [number](https://en.wikipedia.org/wiki/Regular_expression#Character_classes) `12` only in the first two lines since by the `condition` of the task, the line must begin with the letter `c`. However, we must also take into account that there are `separators` between words: different characters like ` = + &`
+
+The template for a similar task looks like this:
 
 ```python
 # Condition under which the second part will be triggered
-(?: 
-    condition \K  # Match the condition and reset the match start
-)
+condition \K  # Match the condition and reset the match start
 
-|  			# Beginning of the loop
+|  			  # Beginning of the loop
 
 (?<=\G)  		# Ensures that the condition is found; the loop starts from the position of the condition/previous iteration
-separator*?  	# Ungreedy: zero and more separators before expresseion: space, char, ...
+separator*?  	# Non-greedy: zero and more separators before expresseion: space, char, ...
 \K  			# Reset the match start again
 expression  	# Match the expression: \w+ or .+ ...
 ```
-The idea: after encountering a `condition`, the RegEx starts from its position `(?<=\G)`, goes on, bypasses the separator, resets the current position and finally captures the desired `expression`. Having reached the end, all the RegEx is repeated again from the position of the last found word `(?<=\G)`. And so on until the end of the string.
 
-`\K` means *forget everything before and start highlight from this position*. It helps not to highlight everything that was before `\K`.  Now we construct the RegEx according to the template ([DEMO](https://regex101.com/r/wXPPD2/1)):
+**The idea**: after encountering `condition`, the RegEx skips its `\K` and continues searching from its position `(?<=\G)` . He passes by [non-greedy](https://riptutorial.com/regex/topic/429/greedy-and-lazy-quantifiers) word `separator` , skips it `\K` and finally captures the `expression`. 
+
+After reaching the end, everything repeats again from the position of the last found word `(?<=\G)`.  However, after the entire RegEx is completed, the loop will start from the beginning. But in order for the loop to go the right way and continue to walk along the line, you need to add the [character](https://en.wikipedia.org/wiki/Vertical_bar) *or*  `|` before `(?<=\G)`. 
+
+Pay attention to the [symbol](https://dev.to/marounmaroun/what-does-k-mean-in-regex-4l6n) `\K`: *forget everything before and start highlight from this position*. Slide the carriage/cursor. Allows you to find a `condition`, **cut it off** from the result, and return just `expression`. The main thing to remember is that `\K` does not work in the usual exciting groups `( )`, only in [non-capturing](https://riptutorial.com/regex/example/2155/backreferences-and-non-capturing-groups) and [atomic groups](https://riptutorial.com/regex/topic/8770/atomic-grouping) : `(?:) and (?>)`. 
+
+[The character](https://dev.to/marounmaroun/what-does-k-mean-in-regex-4l6n) `\K` stands after the condition and the separator. I repeat once again: after finding the `condition`, we skip the *condition-template* for the first time, and after going through the `separator` between the words, we will skip the *separator-template* with each iteration. We don't need them, we need **words** and **nums**. 
+
+Now we construct the RegEx according to the template ([DEMO](https://regex101.com/r/wXPPD2/2)):
 
 ```python
-(?: 
-    c \K  		# Condition: "c" literal
-)
+c \K  		# Condition: "c" literal
 
 |  			# Beginning of the loop
 
 (?<=\G)  		# Ensures that the condition is found; the loop starts from the position of the condition/previous iteration
-.*?  			# Ungreedy separator: zero and more chars/spaces
+.*?  			# Non-greedy separator: zero and more chars/spaces
 \K  			# Reset the match start again
 \w+  			# Greedy: matches any words/numbers (equivalent to [a-zA-Z0-9_])
 ```
 
-However, such a RegEx highlights the words **to the end of the entire line**: it does not have a `stop condition`. Let's complicate the same task: if there is a `c` at the beginning of the line and then any quotes `" '` highlight only words and numbers in quotes:
+**How we constructed the template:** `condition` is the [letter](https://riptutorial.com/regex/topic/1757/character-classes) `c`, then nothing from the template changed, then `separator` is any char `.*`, then the letter search template \w`, which will cycle through the letters **to the end of the entire string**.
 
-```tcl
-c "=word &word" 2-2=0 
-c "22" ^&*w0rd* 
-+word &word   
+However, such a RegEx highlights the words **to the end of the entire line**: it does not have a `stop condition`. 
+
+**Let's complicate the same task:** find a string that starts with quotation marks `" '` and find only words and numbers in it:
+
+```python
+c"word & word" = word + word
+c"12 = word" + word
+c word & word = word + word
+c 12 = word + word
 ```
 
 The final template looks like this: 
 
 ```python
-(?: 
-    condition\K  # Match the condition and reset the match start
-)
+condition\K  # Match the condition and reset the match start
 
 |  			# Beginning of the loop
 
@@ -73,14 +82,14 @@ stop*?  		# The character at which the entire regex stops: [^exclude]
 expression  	# Match the expression: \w+ or .+ ...
 ```
 
-Now we construct the RegEx according to the template. The template is similar to the previous one, but quotes `[" ']` and space/tab `[ \t]` are added to the condition: `c[ \t]*?["']` The RegEx stop condition appears: `[^"']`*(everything except the quotes.)*. After it, the highlighting of further characters is completed. Now we construct the RegEx according to the template ([DEMO](https://regex101.com/r/FUH7Xx/1)):
+Now we construct the RegEx according to the template. The template is similar to the previous one, but [quotes](https://riptutorial.com/regex/example/9991/character-class-and-common-problems-faced-by-beginner) `[" ']`  are added to the condition: `c ["']` 
+
+The RegEx `stop condition` appears: `[^"']`*([char](https://riptutorial.com/regex/topic/1757/character-classes#undefined) `^` means everything except the quotes)*. After it, the highlighting of further characters is completed. Now we construct the RegEx according to the template ([DEMO](https://regex101.com/r/FUH7Xx/4)):
 
 ```python
-(?: 
-    c[ \t]*?["']\K  		# Condition: c " or c ' or c   " or c   '
-)
+c ["'] \K  		# Condition: c " or c ' or c   " or c   '
 
-|  			# Beginning of the loop
+|  			    # Beginning of the loop
 
 (?<=\G)  		# Ensures that the condition is found
 [^"']*?  		# Quotes after which the entire regex stops
@@ -92,21 +101,22 @@ Try to solve these problems without using these templates. I will be very glad i
 
 #### Final template
 
-Find a quoted string and highlight only chars that are not in brackets `{ }` : 
+Find a string that starts and ends with the character  `   and find any characters outside the brackets   {  }  in it :
 
-```tcl
-"= {&+%} %" ... 
-"{&+%}=={&+%}$" ...
-{!} word and {$} anything else  
+```css
+`{string} with {exluded} words 12 nums`
+`string {with} {exluded} words 12 nums`
+"quoted {string} with {exluded} words and 12 nums"
+"quoted string {with} exluded {words} and {12} nums"
 ```
 
-Simply put, we have to walk along the line, bypassing everything that is enclosed in `{ }` . In this case, there should be two different conditions for stopping: the condition for `stopping and repeating` the cycle if parentheses are found `{ }`; the `condition for stopping` if quotes are found `" '`:
+Simply put, we have to walk along the line, bypassing everything that is enclosed in `{ }` . In this case, there should be two different conditions for stopping: the condition for `stopping and repeating` the cycle if parentheses are found `{ }`; the `condition for stopping RegEx` if   `  found :
 
 ```python
 # Condition under which the second part will be triggered
-^condition
+^condition  # Char ^ means start of the string
 
-|  		# Beginning of the loop
+|  		  	# Beginning of the loop
 
 (?<=\G)  	# Ensures that the condition is found; the loop starts from the position of the condition/previous iteration
 
@@ -119,24 +129,26 @@ Simply put, we have to walk along the line, bypassing everything that is enclose
 expression  # Match the expression: \w+ or .+ ...
 ```
 
-The idea: after encountering a `condition`, the RegEx starts from its position `(?<=\G)` goes on, stops if a quotation mark is detected, bypasses the group, resets the current position and finally captures the desired `expression`. Having reached the end, all the RegEx is repeated again from the position of the last found word `(?<=\G)`. And so on until the main stop condition is met.
+**The idea:** after encountering a `condition`, the RegEx starts from its position `(?<=\G)` goes on, stops if a quotation mark is detected, bypasses `skip` group, resets the current position `\K` and finally captures the desired `expression`. 
+
+Having reached the end, all the RegEx is repeated again from the position of the last found word `(?<=\G)`. And so on until the `stop condition` is met.
 
 The atomic group `(?>...)` is used to group sub-patterns that should not be subject to backtracking. This means that once the group finds a match, it is fixed, and the regex engine will not attempt to change this match, even if subsequent parts of the pattern do not match. In this context, the atomic group allows for efficient handling of nested structures, such as curly braces, and ensures that if a match is found within the curly braces, it will not be reconsidered.
 
-The final version ([DEMO 1,](https://regex101.com/r/vZugRo/1) [DEMO 2](https://regex101.com/r/uKMPHi/1)):
+The final version ([DEMO](https://regex101.com/r/vZugRo/2)):
 
 ```py
-^["']\K # Matches a starting quote (single or double) and discards it from the output
+^[`]\K # Matches a ` and discards it from the output
 
 |  		# Beginning of the loop
 
 (?>      	# Start of the atomic group
     {.*?}   	# Skips the content within curly braces { }
  	|			# OR
-    [^"']    	# Stops RegEx if quotes are found
+    [^`]    	# Stops RegEx if ` are found
 ) \K      	# Resets the match, so it is not included in the output
 
-[^{}"']+  	# Matches one or more characters that are not {, }, ", or '
+[^{}`]+  	# Matches one or more characters that are not { } `
 ```
 
 #### Limitations
