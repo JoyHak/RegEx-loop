@@ -151,9 +151,11 @@ The final version ([DEMO](https://regex101.com/r/vZugRo/2)):
 [^{}`]+  	# Matches one or more characters that are not { } `
 ```
 #### Alternative solution
-[An elegant solution](https://regex101.com/r/KY6Lba/1), which I [expanded](https://regex101.com/r/ZhPnpR/1) upon, was proposed [by this user](https://habr.com/ru/users/Alexandroppolus/).
+[An elegant solution](https://regex101.com/r/KY6Lba/1), which I [expanded](https://regex101.com/r/ZhPnpR/1) upon, was proposed [by this user](https://habr.com/ru/users/Alexandroppolus/). 
 
-[This RegEx](https://regex101.com/r/ZhPnpR/1) does not use anchors `\K` and `\G`, which makes it more broadly applicable, for example, in `JavaScript`. It consists of two main parts, separated by the *or* operator `|`:
+This RegEx does not use anchors `\K` and `\G`; it is unique to `JavaScript` and is **not available in other languages** that support [Perl syntax](https://www.boost.org/doc/libs/1_85_0/libs/regex/doc/html/boost_regex/syntax/perl_syntax.html) due to different quantifiers (the conditions before the word [must be fixed](https://stackoverflow.com/questions/3796436/whats-the-technical-reason-for-lookbehind-assertion-must-be-fixed-length-in-r)).
+
+It consists of two main parts, separated by the *or* operator `|`:
 
 ```python
 (?<=`)         
