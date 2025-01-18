@@ -150,6 +150,43 @@ The final version ([DEMO](https://regex101.com/r/vZugRo/2)):
 
 [^{}`]+  	# Matches one or more characters that are not { } `
 ```
+#### Alternative solution
+[An elegant solution](https://regex101.com/r/KY6Lba/1), which I [expanded](https://regex101.com/r/ZhPnpR/1) upon, was proposed [by this user](https://habr.com/ru/users/Alexandroppolus/).
+
+[This RegEx](https://regex101.com/r/ZhPnpR/1) does not use anchors `\K` and `\G`, which makes it more broadly applicable, for example, in `JavaScript`. It consists of two main parts, separated by the *or* operator `|`:
+
+```python
+(?<=`)         
+\w+             # The first word in the string after the backtick `
+
+|               # OR words in the string...
+
+(?<=            # ...which is preceded by:
+   ^ `              # the start of the string, the backtick `
+   .*               # any separator including spaces
+   [^               # and there will be no:
+      {}                # curly braces, skipping words in { }
+      \r\n              # end of the line  
+   ]+               # skip 1 or more such characters!
+)
+
+\b              # the start of a whole word/group of characters
+[^              # except for:
+   {}               # curly braces, skipping words in { }
+   `                # the closing backtick ` 
+   \r\n             # end of the line  
+]+              # find 1 or more characters!
+```
+
+The **first part** of the expression captures the first word that directly follows the backtick `.
+
+The **second part** captures **words** that are not inside curly braces `{ }`. We are looking for a **group of characters** (which I will refer to as a "word" for brevity) with a specific conditions that must be met before the word in the string:
+
+1. The string must start with a backtick `` ` ``.
+2. `` ` `` can be followed by any characters (including spaces).
+3. There must not be `{ }` and newline characters `\r\n` before the word.
+
+Then, there is `\b`, which indicates the beginning of the **word** we are searching for. All previous conditions will be checked right before the whole word. Each time, we'll skip **whole words** that are preceded by curly braces `{ }`, those that do not have a backtick `` ` `` at the start of the line, and, most importantly, we'll **skip words from other lines** that "mistakenly" match the expression if there is no check for the presence of a newline character `\r\n` before them. Any first word of each subsequent line would fall into our *expression* without 3rd condition.
 
 #### Limitations
 
